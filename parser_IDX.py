@@ -1,4 +1,3 @@
-
 class ParserIDX:
     """ Makes multi-register ready """
 
@@ -24,6 +23,30 @@ class ParserIDX:
             raise Exception(f"No urls extracted for year: {start}, until: {end}")
 
         print("=========== Done - Ready for Action ===============")
+
+    @staticmethod
+    def extract_acc(file_path: str) -> str:
+        """Extract the accession number from the file path"""
+        return os.path.splitext(os.path.basename(file_path))[0]
+    
+    @staticmethod
+    def parse_idx_line(line: str) -> dict:
+        """
+        Parse a single line from the .idx file based on the fixed-width format.
+        """
+        if not line.strip():
+            return {}
+
+        # More robust parsing - split by multiple spaces and reconstruct
+        parts = re.split(r'\s{2,}', line.strip())  # Split on 2+ spaces
+
+        return {
+            "form_type": parts[1],
+            "company_raw": parts[0],
+            "cik": parts[2],
+            "date_filed": parts[-2],
+            "file_name": parts[-1]
+        }
 
     @staticmethod
     def _scrape_form_idx_links(year: int, quarter: int) -> list:
@@ -81,13 +104,13 @@ class ParserIDX:
             if not line.strip():
                 continue
 
-            parsed = parse_idx_line(line)
+            parsed = self.parse_idx_line(line)
 
             if not parsed:
                 continue
 
             # Extract accession number
-            accs = extract_acc(parsed["file_name"])
+            accs = self.extract_acc(parsed["file_name"])
 
             # idea as we use company.idx now
             # keep one main body :
@@ -173,7 +196,7 @@ class ParserIDX:
 
     def describe(self):
         """ """
-          
+
         for k, i in self.small_db.items():
             print(i["entity"], i["original_name"])
 
@@ -199,9 +222,8 @@ class ParserIDX:
 
 start = 2024
 end = 2025
- 
-ParserIDX(start=start, end=end).parse(describe=True)
 
+ParserIDX(start=start, end=end).parse(describe=True)
 
 """
 
