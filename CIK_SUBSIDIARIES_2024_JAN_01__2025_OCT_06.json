@@ -1,6 +1,6 @@
  
 {
-  "comment": "I've used a quick transport from tuple -> key + _ join for the 116 joint groups. This is 100% for illustration purpose, use the parser output directly, not this shit",
+  "comment": "I've used a quick transport from tuple -> key + _ join for the joint groups. This is 100% for illustration purpose, use the parser output directly, not this shit",
   "0001995807": [
     "0001193125-24-286982:d898161dex211.htm",
     "0001193125-24-151957:d752700dex211.htm",
