@@ -1,84 +1,104 @@
 class EFTsQuery:
     """
 
-      When to use EFTs?  
-        - Exhibit search
-        - Items (8-K...)
+        - For exhibit search
+        - For items search
+        - Not for filing search
+        - Not for company search
         
-      When to not use EFTs?
-        - Blind Company <> CIK match up -- just search q=Morgan Stanley or keyword=Morgan Stanley and find out why
-        - Filing search / regular stuff
-
-      Very first version ----
-    
     """
 
     BASE = "https://efts.sec.gov/LATEST/search-index?"
-    EX21_1 = BASE + "fileType=21.1"
+    EX21_1 = BASE + "fileType=EX-21.1"
 
     def __init__(self, start=2003, end=None):
-
         if start < 2003:
-            raise Exception(f"Likely to not operate in any results pre-2003 - use Paper parser instead")
+            raise Exception("Likely to not operate in any results pre-2003 - use Paper parser instead")
 
         if not end:
-            # including the entire span (e.g. 2025-2026 == until cur month)
-            end = datetime.datetime.now().year + 1
+            # include current year fully
+            end = datetime.datetime.now().year
 
-        self.small_db = {}
+        # go until one year *after* the end, to capture full final year
         self.start_year = start
         self.end_year = end
+        self.small_db = {}
+        self.joints = {}
         self.params = []
 
-        for i in range(start, end):
-            self.params.append(f"&startdt={i - 1}-01-01&enddt={i}-01-01")
+        for year in range(self.start_year + 1, self.end_year + 2):
+            self.params.append(f"&startdt={year - 1}-01-01&enddt={year}-01-01")
 
     def subsidiaries(self, param=None):
-        """ returns all (cik: [ex21.1....]) matches who have a path that's a EX 21.1 """
+        """
 
-        # You cannot paginate beyond 10 000 rows through the public search-index URL.
-        # each result is capped at 10.000
-        # Narrow the query so that each sub-query returns < 10 000 docs, then aggregate the slices.
+         Takes care of:
+             - Single filer sharing EX21.1 list (the 95% case)
+             - Joint filer sharing EX21.1 list (the 5% case)
+             - Multiple 21s per filer/joint using CIK as primary key
+            
+        """
+
         if not param:
-
             print(f"====== START from {self.start_year} to {self.end_year} ======")
-
             for param in self.params:
                 self.subsidiaries(param)
-
             return self.small_db
 
-        response = Request(self.EX21_1 + param).fetch(as_json=True)
-        hits = response["hits"]["hits"]
+        print(f"Querying: {param}")
 
-        for _i in hits:
+        base_url = self.EX21_1 + param
+        from_offset = 0
+        total_hits = None
 
-            i = _i["_source"]
+        while True:
+            url = f"{base_url}&from={from_offset}"
+            response = Request(url).fetch(as_json=True)
 
-            if len(i["ciks"]) != 1:
-                print(
-                    "ERROR: Why does this file have multiple ciks? "
-                    "That should be the case for joints etc. but not for a subsidiary 21.1 file type"
-                )
-                print(i)
-                continue
+            hits = response.get("hits", {}).get("hits", [])
+            total_hits = response["hits"]["total"]["value"]
+            if not hits:
+                break
 
-            cik = i["ciks"][0]
+            for _i in hits:
+                i = _i["_source"]
 
-            # allow all form types
-            # devise: better scrape 1x too often than loosing potential relations !
+                ciks = i["ciks"]
 
-            # 59.873 21-1 are coming from 10-K btw. 2003-noww
+                # Pick the first CIK as the key; this is typically the parent
+                if not ciks:
+                    print("ERROR: Skipping filing with no CIKs:", i)
+                    continue
 
-            if not self.small_db.get(cik):
-                self.small_db[cik] = []
+                file_type = (i.get("file_type") or "").strip().upper()
 
-            if i["file_type"] != "EX-21.1":
-                print("ERROR: Why do we have: {} if it should've only match EX-21.1s?".format(i["file_type"]))
-                continue
+                # Skip any non-EX-21.1 exhibits — strictly match to avoid EX-99.x etc.
+                if file_type != "EX-21.1":
+                    print(f"ERROR: Skipping non-21.1 exhibit type: {file_type}")
+                    continue
 
-            # _id contains a concrete result we still have to normalized [TODO]
-            self.small_db[cik].append(_i["_id"])
+                cik = ciks[0]
+
+                # A true EX-21.1 should normally have a single filer CIK (the parent)
+                if len(ciks) != 1:
+                    print(f"-- Multiple CIKs found - creating/inserting the tuple joint")
+
+                    # Don't skip; sometimes joint 10-Ks include shared 21.1 exhibits.
+                    # The information of seeing a joint group is already good for our DB
+                    #       because joint group filing is evidence for a potentially meaningful relationship
+
+                    cik = tuple(ciks)
+
+                if not self.small_db.get(cik):
+                    self.small_db[cik] = []
+
+                self.small_db[cik].append(_i["_id"])
+
+            from_offset += 100
+            if from_offset >= total_hits:
+                break
+
+        print(f"  Retrieved {from_offset} / {total_hits} results for {param}")
 
 
 ETFs = EFTsQuery()
@@ -86,8 +106,4 @@ ETFs = EFTsQuery(start=2024, end=2025)
 print(ETFs.subsidiaries())
 
 # ---> Results in "CIK_SUBSIDIARIES_2024_2025.json"
-# (3.7k) iterations in total
-
-
-
- 
+# -- 116 joint groups, 3.725 single-filers
