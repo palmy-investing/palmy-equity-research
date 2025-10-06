@@ -20,7 +20,7 @@ def init_historic_entities_by_idx(start, end, in_process=False, finished=False):
     }
 
     # ---------------------------
-    # Step 1: Process finishing task (regex classification of pending FilerAwaitingClassification)
+    # Step 3: Process finishing task (regex classification of pending FilerAwaitingClassification)
     # ---------------------------
     if finished:
         logging.info("============= FINISHING: Transporting FilerAwaitingClassification via REGEX =============")
@@ -47,7 +47,7 @@ def init_historic_entities_by_idx(start, end, in_process=False, finished=False):
             instance.save()
 
     # ---------------------------
-    # Step 2: Split range and spawn group if not in-process
+    # Step 1: Split range and spawn group if not in-process
     # ---------------------------
     if not in_process:
         # Chunk the range by 1 year (or adjust step as needed)
@@ -63,7 +63,7 @@ def init_historic_entities_by_idx(start, end, in_process=False, finished=False):
         return True
 
     # ---------------------------
-    # Step 3: Actual parsing process
+    # Step 2-n: Actual parsing process
     # ---------------------------
     results = ParserIDX(start=start, end=end).parse()  # Returns {cik: {"name": ..., "other_names": ..., "entity": ...}}
 
