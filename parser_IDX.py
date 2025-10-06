@@ -87,10 +87,10 @@ class ParserIDX:
         # Build absolute URLs
         urls = [base_url + link for link in links]
 
-        return urls
+        return urls 
 
     def parse_idx_day(self, enum):
-
+        """ """ 
         url = self.links[enum]
 
         response = Request(url).fetch(as_json=False)
@@ -155,7 +155,7 @@ class ParserIDX:
 
             if name not in names:
                 # -- tracking name changes per CIK --- e.g. Zuckerberg Max --- Zuckerberg Marx
-                self.small_db[cik]["other_names"].append(form)
+                self.small_db[cik]["other_names"].append(name)
 
             fts = [f.get("type") for f in record["forms"]]
 
