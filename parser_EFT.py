@@ -101,9 +101,9 @@ class EFTsQuery:
         print(f"  Retrieved {from_offset} / {total_hits} results for {param}")
 
 
-ETFs = EFTsQuery()
-ETFs = EFTsQuery(start=2024, end=2025)
-print(ETFs.subsidiaries())
+EFTs = EFTsQuery(start=2024, end=2025)
 
+import json 
+print(json.dumps(EFTs.subsidiaries())) 
 # ---> Results in "CIK_SUBSIDIARIES_2024_2025.json"
 # -- 116 joint groups, 3.725 single-filers
