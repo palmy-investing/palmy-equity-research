@@ -3,6 +3,7 @@
 
 I'd suggest to use smth like (my v1 sketch)
 
+```
 @shared_task(ignore_results=True)
 def init_historic_entities_by_idx(start, end, in_process=False, finished=False):
     """
@@ -126,4 +127,5 @@ def init_historic_entities_by_idx(start, end, in_process=False, finished=False):
 
         # Save new instance
         instance.save()
+```
  
