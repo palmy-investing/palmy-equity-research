@@ -101,9 +101,22 @@ class EFTsQuery:
         print(f"  Retrieved {from_offset} / {total_hits} results for {param}")
 
 
-EFTs = EFTsQuery(start=2024, end=2025)
+# ------- TESTING
 
-import json 
-print(json.dumps(EFTs.subsidiaries())) 
+EFTs = EFTsQuery(start=2024, end=2025) 
+original_dict = EFTs.subsidiaries()
+
+import json
+
+# --- temporary shit to work with .json schema
+
+fixed = {}
+for key, files in original_dict.items():
+    # key might be a tuple → make it a string
+    new_key = "_".join(key) if isinstance(key, tuple) else str(key)
+    fixed[new_key] = files
+
+print(json.dumps(fixed, indent=2))
+
 # ---> Results in "CIK_SUBSIDIARIES_2024_2025.json"
 # -- 116 joint groups, 3.725 single-filers
