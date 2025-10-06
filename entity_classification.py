@@ -5,6 +5,7 @@ try:
 except ImportError:
     HAS_NAMEPARSER = False
 
+
 class EntityClassifier:
     """
     Goal:
@@ -78,7 +79,44 @@ class EntityClassifier:
     PERSON_SUFFIXES = re.compile(
         r'\b(?:Jr|Sr|II|III|IV|V|PhD|MD|CPA|Esq|MBA|DDS|DVM)\.?$',
         re.IGNORECASE
-    )
+    ) 
+
+    REGIMES = {
+
+        # --- Registered Investment Companies (’40 Act) ---
+        "N-1A": "is_oef",
+        "N-2": "is_bdc",
+        "N-3": "is_insurance",
+        "N-4": "is_insurance",
+        "N-6": "is_insurance",
+        "N-8B": "is_uit",  # alias for N-8B-2
+        "N-8B-2": "is_uit",
+        "N-54A": "is_bdc",
+        "N-MFP": "is_mmf",
+        "N-MFP2": "is_mmf",
+
+        # --- Real Estate ---
+        "S-11": "is_rt",
+
+        # --- Insurance / ADR / Foreign ---
+        "F-6": "is_adr_shell",
+        "F-1": "is_fpi",
+        "F-3": "is_fpi",
+        "F-4": "is_fpi",
+        "F-10": "is_fpi",
+        "20-F": "is_fpi",
+        "6-K": "is_fpi",
+        "40-F": "is_fpi",
+
+        # --- Market Infrastructure ---
+        "1-SRO": "is_sro",
+        "SBSEF": "is_sbsef",
+        "SDR": "is_sdr",
+
+        # --- Advisers ---
+        "ADV": "is_ria",  # includes ADV, ADV-W, ADV-E etc.
+
+    }
 
     def __init__(self, name_resolver=None):
         """
@@ -86,8 +124,35 @@ class EntityClassifier:
             name_resolver: Optional resolver with resolve_name_g() method
         """
         self.name_resolver = name_resolver
-
-    def classify(self, text: str):
+    
+    def classify(self, text, forms=None):
+        """ 
+        
+         if forms = None
+         -> Use classify_by_re with text
+         
+         if forms
+         -> Use classify_by_forms; If no match use classify_by_re 
+        
+         may return
+            - set (list of Company flags) - if forms
+            - str (Company | Person) regex classification
+            - None (regex classification of being too unsure)
+            
+        """
+        
+        if forms:
+            x = self.classify_by_forms(forms=forms)
+            
+            if x:
+                return x
+            
+            # --- no lag found 
+            
+        y = self.classify_by_re(text)
+        return y
+        
+    def classify_by_re(self, text: str):
         """
         Classify entity as "Company", "Person", or None.
 
@@ -206,6 +271,25 @@ class EntityClassifier:
         # Default: uncertain
         return None
 
+    def classify_by_forms(self, forms: set) -> list:
+        """
+        
+         forms expect a set of form types, not a list, e.g.
+            {"ADV", "40-F", }
+         
+         see IDX Parser usage
+        
+         Returns one of
+            FOREIGN_FORMS.values() or None
+        
+         Goal: 
+            - Classification of IDX entries by collected forms per parse run
+            - Avoiding false classifications of .classify() & reducing regex usage,
+             e.g. Person <> But a Person has a "is_insurance" flag --> FRAUD
+            
+        """
+        return [i for f in forms if (i := self.REGIMES.get(f))]
+    
     def _is_valid_person_via_parser(self, text: str) -> bool:
         """
         Validate person name structure using HumanName parser.
@@ -245,10 +329,8 @@ class EntityClassifier:
         except Exception:
             return False
 
-
 ENTS = EntityClassifier()
 classifier = ENTS
-
 
 FAILURES = [
 
