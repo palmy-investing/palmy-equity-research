@@ -118,5 +118,4 @@ for key, files in original_dict.items():
 
 print(json.dumps(fixed, indent=2))
 
-# ---> Results in "CIK_SUBSIDIARIES_2024_2025.json"
-# -- 116 joint groups, 3.725 single-filers
+# ---> Results in ".json" 
