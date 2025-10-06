@@ -6,7 +6,7 @@ from .entity_classification import ENTS
 class Request:
     # your request class wrapper for utilities
     pass
-    
+
 
 class ParserIDX:
     """ Makes multi-register ready """
@@ -38,7 +38,7 @@ class ParserIDX:
     def extract_acc(file_path: str) -> str:
         """Extract the accession number from the file path"""
         return os.path.splitext(os.path.basename(file_path))[0]
-    
+
     @staticmethod
     def parse_idx_line(line: str) -> dict:
         """
@@ -164,11 +164,14 @@ class ParserIDX:
                 # new form type == regime info
                 self.small_db[cik]["forms"].append(form)
 
-    def parse(self, describe=False):
+    def parse(self, describe=False, safety=45):
         """ """
 
+        # your TODO - add a safety guard or set it to None if your PC dont crash otherwise :D
+        links = self.links[:safety] if safety else self.links[:safety]
+
         # :10 while testing
-        for i, _ in enumerate(self.links[:10]):
+        for i, _ in enumerate(links):
             self.parse_idx_day(i)
 
         # classify ents
