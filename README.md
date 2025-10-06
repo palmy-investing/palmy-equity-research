@@ -6,5 +6,6 @@
 
 06/10
  
-- Introduced a new classify_by_forms which is way more reliable than the naive regex approach, but you must be IDX ready
-- That's the reason for uploading ParserIDX [which still misses some import, and support funcs to work on your end] [TODO]
+- Introduced a the ParserIDX which unlocks the real potential of million of companies, governmental bodies, and persons.
+- Adjsuted ENTS to classify by forms - if given (use case from ParserIDX)
+
