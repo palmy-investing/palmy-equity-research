@@ -393,8 +393,8 @@ Person Zugelder Dan
 Company abrdn Global Infrastructure Income Fund
 Company phase2body, inc.
 
-
 ADDITIVE COUNT ( INCLUDES PREVIOUS COUNT )
+
 Persons: 8949
 Companies: 10408
 None: 29
@@ -405,8 +405,9 @@ Other flags:
   ('is_insurance',): 1
   ('is_bdc',): 6
   ('is_oef',): 2
+  
 TOTAL: 
-20080
+20080 
 
 ============ CLOSED ==============
 
