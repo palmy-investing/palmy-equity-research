@@ -11,4 +11,12 @@ I'd suggest to use smth like (my v1 sketch)
     
     results = ParserIDX(start=start, end=end).parse()
 
-    # db lookups - db creations... for 1Y of full EDGAR filer data
+    # db lookups - db creations... for 1Y of full EDGAR filer data, f.ex. you may want to use
+    
+    INDICATORS = {
+        "Company": Company,
+        "Person": Person,
+        None: FilerAwaitingClassification,
+        tuple: Company
+    }
+
