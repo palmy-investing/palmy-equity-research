@@ -1,3 +1,9 @@
+
+class Request:
+    # your request class wrapper for utilities
+    pass
+    
+
 class ParserIDX:
     """ Makes multi-register ready """
 
