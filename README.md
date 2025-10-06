@@ -6,6 +6,5 @@
 
 06/10
  
-- Introduced "ParserIDX" which unlocks the real potential of million of companies, governmental bodies, and persons.
-- Adjsuted ENTS to classify by forms - if given (use case from ParserIDX)
+- Introduced "ParserIDX" which unlocks the real potential of million of companies, governmental bodies, and persons. Adjsuted ENTS to classify by forms - if given (use case from ParserIDX)
 
