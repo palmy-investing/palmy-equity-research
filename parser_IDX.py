@@ -1,4 +1,8 @@
 
+# dummy / fake import 
+from .entity_classification import ENTS
+
+
 class Request:
     # your request class wrapper for utilities
     pass
